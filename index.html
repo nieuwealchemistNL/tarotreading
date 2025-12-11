@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tarot Positie Lezer – Rider Waite</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0c0c10;
+      --bg-alt: #151520;
+      --accent: #b39704;
+      --accent-soft: #d8c258;
+      --text: #f7f4ea;
+      --muted: #9997a5;
+      --danger: #a52a23;
+      --radius: 16px;
+      --shadow: 0 18px 35px rgba(0, 0, 0, 0.6);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #272740 0, #050509 55%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 1100px;
+      background: linear-gradient(145deg, #12121c, #06060b);
+      border-radius: 24px;
+      padding: 24px 24px 32px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent-soft);
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 480px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    select,
+    button {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(10, 10, 16, 0.9);
+      color: var(--text);
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      backdrop-filter: blur(10px);
+    }
+
+    select:focus,
+    button:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(179, 151, 4, 0.4);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), #e0c76a);
+      color: #1a1301;
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    button.primary:hover {
+      filter: brightness(1.03);
+    }
+
+    button.secondary {
+      background: transparent;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .spread-info {
+      margin-bottom: 18px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .spread-info strong {
+      color: var(--accent-soft);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .card-slot {
+      background: radial-gradient(circle at top, #1f1b25, #08070b);
+      border-radius: var(--radius);
+      padding: 14px 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-slot::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(179, 151, 4, 0.16), transparent 60%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .slot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .slot-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-soft);
+    }
+
+    .slot-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .badge.orientation {
+      border-color: rgba(179, 151, 4, 0.6);
+      color: var(--accent-soft);
+    }
+
+    .badge.major {
+      border-color: rgba(165, 42, 35, 0.7);
+      color: #f7d7cf;
+    }
+
+    .card-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .card-meaning {
+      font-size: 0.86rem;
+      line-height: 1.5;
+      color: #d5d3e2;
+      white-space: pre-line;
+    }
+
+    .placeholder {
+      opacity: 0.6;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    @media (max-width: 720px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .footer-note {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div>
+        <h1>Tarot Positie Lezer</h1>
+        <p>
+          Trek een spread en laat de webapp automatisch de kaarten duiden op basis van
+          <strong>kaart</strong>, <strong>positie</strong> en <strong>uitleg (rechtop / omgekeerd)</strong>.
+        </p>
+      </div>
+    </header>
+
+    <div class="controls">
+      <label>
+        Spread:
+        <select id="spreadSelect">
+          <option value="three-card">3-kaarten – Verleden / Heden / Toekomst</option>
+        </select>
+      </label>
+
+      <button class="primary" id="drawBtn">Trek nieuwe spread</button>
+
+      <label>
+        <input type="checkbox" id="reversalToggle" checked />
+        Sta omgekeerde kaarten toe
+      </label>
+
+      <button class="secondary" id="resetBtn">Reset uitleg</button>
+    </div>
+
+    <div class="spread-info" id="spreadInfo"></div>
+
+    <div class="cards-grid" id="cardsGrid"></div>
+
+    <div class="footer-note">
+      Tarotlogica &amp; interpretatie: jij – deze app is je assistent 💫
+    </div>
+  </div>
+
+  <script>
+    // --- Tarot deck: 78 kaarten, verkorte betekenissen (plaatsvervangers voor jouw high-end teksten) ---
+
+    const tarotDeck = [
+      // Major Arcana
+      {
+        id: "major-0",
+        name: "0 – De Dwaas",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Nieuwe start, vertrouwen, sprong in het onbekende, openheid, kinderlijke verwondering.",
+        reversed:
+          "Roekeloosheid, twijfel, niet durven springen, uitstel, bang voor verandering."
+      },
+      {
+        id: "major-1",
+        name: "I – De Magiër",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Manifestatiekracht, focus, intentie, jouw tools inzetten, creatief scheppen.",
+        reversed:
+          "Versnipperde energie, manipulatie, twijfel aan eigen kracht, potentieel niet benutten."
+      },
+      {
+        id: "major-2",
+        name: "II – De Hogepriesteres",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Intuïtie, innerlijk weten, stilte, mysterie, toegang tot het onderbewuste.",
+        reversed:
+          "Je intuïtie negeren, innerlijke ruis, geheimen, niet willen voelen wat je weet."
+      },
+      {
+        id: "major-3",
+        name: "III – De Keizerin",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Creatie, vruchtbaarheid, zelfzorg, overvloed, sensuele en aardse vervulling.",
+        reversed:
+          "Gebrek aan zelfzorg, creatief geblokkeerd, overgeven of overnurturing, leegtegevoel."
+      },
+      {
+        id: "major-4",
+        name: "IV – De Keizer",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Structuur, leiderschap, grenzen, verantwoordelijkheid, stabiliteit.",
+        reversed:
+          "Controlezucht, rigiditeit, autoriteitsconflict, overcontrole, innerlijke verstarring."
+      },
+      {
+        id: "major-5",
+        name: "V – De Hierofant",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Traditie, waarden, innerlijke leraar, spirituele structuur, ethiek.",
+        reversed:
+          "Dogma, je eigen weg zoeken buiten de norm, loskomen van systemen."
+      },
+      {
+        id: "major-6",
+        name: "VI – De Geliefden",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Keuze vanuit het hart, verbinding, relatie, innerlijke polariteit in balans.",
+        reversed:
+          "Zelfverraad, liefdesconflict, keuzes uit angst, jezelf verliezen in de ander."
+      },
+      {
+        id: "major-7",
+        name: "VII – De Zegewagen",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Richting, wilskracht, focus, vooruitgang, innerlijke krachten in één lijn.",
+        reversed:
+          "Versnippering, gebrek aan richting, overdrive, sturen vanuit ego, innerlijk conflict."
+      },
+      {
+        id: "major-8",
+        name: "VIII – Kracht",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Innerlijke kracht, zachtheid, zelfbeheersing, regulatie, moed om aanwezig te blijven.",
+        reversed:
+          "Zelftwijfel, ongeduld, boosheid, innerlijk gevecht met instinct, jezelf forceren."
+      },
+      {
+        id: "major-9",
+        name: "IX – De Kluizenaar",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Introspectie, stilte, innerlijke zoektocht, wijsheid, tijd voor jezelf.",
+        reversed:
+          "Isolement, terugtrekken uit angst, je afsluiten, contact met de wereld verliezen."
+      },
+      {
+        id: "major-10",
+        name: "X – Het Rad van Fortuin",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Cycli, verandering, synchroniciteit, keerpunt, nieuwe fase, timing.",
+        reversed:
+          "Vasthouden aan het oude, je slachtoffer voelen van omstandigheden, weerstand tegen verandering."
+      },
+      {
+        id: "major-11",
+        name: "XI – Gerechtigheid",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Waarheid, balans, eerlijkheid, verantwoordelijkheid, karmische correctie.",
+        reversed:
+          "Onbalans, oneerlijkheid, ontkenning, niet je deel nemen, vervormde waarneming."
+      },
+      {
+        id: "major-12",
+        name: "XII – De Gehangene",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Overgave, pauze, nieuw perspectief, niet-doen, dingen anders bekijken.",
+        reversed:
+          "Vastzitten, slachtofferschap, niet willen loslaten, weerstand tegen stilstand."
+      },
+      {
+        id: "major-13",
+        name: "XIII – De Dood",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Transformatie, einde van een fase, loslaten, sterven van een oude identiteit.",
+        reversed:
+          "Verzet tegen verandering, blijven hangen, het oude niet durven laten sterven."
+      },
+      {
+        id: "major-14",
+        name: "XIV – Matigheid",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Balans, heling, integratie, flows, doseren, alchemie van tegenpolen.",
+        reversed:
+          "Overdrijving, uit balans, jezelf uitputten, geen maat kunnen houden."
+      },
+      {
+        id: "major-15",
+        name: "XV – De Duivel",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Schaduw, verslaving, binding, ego-patronen, verleiding, onvrijheid.",
+        reversed:
+          "Bevrijding, ketens doorbreken, schaduwwerk, inzicht in je patronen."
+      },
+      {
+        id: "major-16",
+        name: "XVI – De Toren",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Instorting van oude structuren, doorbraak, plotseling inzicht, bevrijding.",
+        reversed:
+          "Instorting uitstellen, aan iets vasthouden dat al wankelt, angst voor verandering."
+      },
+      {
+        id: "major-17",
+        name: "XVII – De Ster",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Hoop, heling, vertrouwen, zielslicht, inspiratie, zachte vernieuwing.",
+        reversed:
+          "Twijfel, hopeloosheid, jezelf klein houden, niet geloven in je eigen licht."
+      },
+      {
+        id: "major-18",
+        name: "XVIII – De Maan",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Intuïtie, onderbewuste, droomwereld, illusies doorzien, gevoelige fase.",
+        reversed:
+          "Verwarring, projectie, angst, niet weten wat echt is, verdrongen emoties."
+      },
+      {
+        id: "major-19",
+        name: "XIX – De Zon",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Vreugde, succes, vitaliteit, helderheid, kinderlijke levenslust, expressie.",
+        reversed:
+          "Uitgeblust, onzekerheid, innerlijke criticus, je licht tegenhouden."
+      },
+      {
+        id: "major-20",
+        name: "XX – Het Oordeel",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Ontwaken, roeping, karma-afsluiting, wedergeboorte, beslissend inzicht.",
+        reversed:
+          "Zelfveroordeling, angst voor je roeping, oud verhaal niet willen loslaten."
+      },
+      {
+        id: "major-21",
+        name: "XXI – De Wereld",
+        arcana: "Major",
+        suit: "Major",
+        upright:
+          "Voltooiing, heelheid, integratie, expansie, wereldbewustzijn, succes.",
+        reversed:
+          "Nog niet afgerond, iets terughoudend, bang om echt af te sluiten of groter te gaan."
+      },
+
+      // Cups (Bekers)
+      {
+        id: "cups-ace",
+        name: "Aas van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Nieuw emotioneel begin, liefde, verbinding, open hart, spirituele stroom.",
+        reversed:
+          "Emotionele blokkade, leegte, niet kunnen ontvangen, hart gesloten."
+      },
+      {
+        id: "cups-2",
+        name: "Twee van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Verbondenheid, relatie, gelijkwaardige uitwisseling, harmonie, aantrekking.",
+        reversed:
+          "Onevenwichtige relatie, miscommunicatie, afstand, jezelf verliezen in de ander."
+      },
+      {
+        id: "cups-3",
+        name: "Drie van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Vriendschap, vieren, community, plezier, samen delen, emotionele steun.",
+        reversed:
+          "Overdaad, roddel, je buitengesloten voelen, teveel naar buiten gericht."
+      },
+      {
+        id: "cups-4",
+        name: "Vier van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Ontevredenheid, emotionele verveling, naar binnen gekeerd, aanbod niet zien.",
+        reversed:
+          "Opengaan, nieuwe mogelijkheden zien, uit apathie komen, emotionele verschuiving."
+      },
+      {
+        id: "cups-5",
+        name: "Vijf van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Rouw, teleurstelling, focussen op verlies, gemis, emotionele pijn.",
+        reversed:
+          "Loslaten, verdergaan, hoop, opnieuw opbouwen, perspectief op wat er nog is."
+      },
+      {
+        id: "cups-6",
+        name: "Zes van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Jeugdherinneringen, nostalgie, zachtheid, innerlijk kind, vertrouwdheid.",
+        reversed:
+          "Vastzitten in het verleden, idealiseren, niet in het nu kunnen zijn."
+      },
+      {
+        id: "cups-7",
+        name: "Zeven van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Keuzes, dromen, fantasie, vele opties, verleiding, visionair denken.",
+        reversed:
+          "Verwarring, illusies, keuzes uitstellen, realiteit onder ogen moeten zien."
+      },
+      {
+        id: "cups-8",
+        name: "Acht van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Weglopen van wat niet meer voedt, innerlijke zoektocht, emotionele afronding.",
+        reversed:
+          "Twijfel om te vertrekken, blijven waar je ongelukkig bent, uitstel van afscheid."
+      },
+      {
+        id: "cups-9",
+        name: "Negen van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Vervulling, tevredenheid, genieten, emotionele rijkdom, wensen die uitkomen.",
+        reversed:
+          "Lege voldoening, oppervlakkige genoegens, innerlijke leegte ondanks succes."
+      },
+      {
+        id: "cups-10",
+        name: "Tien van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Emotionele vervulling, harmonieus gezin, zielsverbinding, diepe dankbaarheid.",
+        reversed:
+          "Relatieproblemen, breuk in harmonie, onuitgesproken pijn in systeem."
+      },
+      {
+        id: "cups-page",
+        name: "Schildknaap van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Gevoeligheid, creatieve inspiratie, romantische gevoelens, intuïtief begin.",
+        reversed:
+          "Overgevoelig, emotioneel dramatisch, niet geaard in gevoel, ontkenning van emoties."
+      },
+      {
+        id: "cups-knight",
+        name: "Ridder van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Romantiek, idealisme, een emotioneel aanbod, volgen van het hart.",
+        reversed:
+          "Onbetrouwbare romantiek, vluchtige liefde, escapisme, emotionele onduidelijkheid."
+      },
+      {
+        id: "cups-queen",
+        name: "Koningin van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Empathie, intuïtie, verzorgende emotionele aanwezigheid, veilige bedding.",
+        reversed:
+          "Overweldigd door emoties, emotionele uitputting, grenzenloosheid, self-sacrifice."
+      },
+      {
+        id: "cups-king",
+        name: "Koning van Bekers",
+        arcana: "Minor",
+        suit: "Bekers",
+        upright:
+          "Emotionele volwassenheid, stabiliteit, compassie, wijsheid in gevoel.",
+        reversed:
+          "Emotionele manipulatie, afgesloten hart, passief agressief, niet uitspreken."
+      },
+
+      // Wands (Staven)
+      {
+        id: "wands-ace",
+        name: "Aas van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Nieuwe inspiratie, vuur, actie, creatief begin, levenslust, initiatief.",
+        reversed:
+          "Geblokkeerde inspiratie, uitstel, futloosheid, kansen niet pakken."
+      },
+      {
+        id: "wands-2",
+        name: "Twee van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Visie, plannen, toekomstgericht, kiezen tussen comfort en groei.",
+        reversed:
+          "Twijfel, veilig willen blijven, niet durven uitbreiden of zichtbaar worden."
+      },
+      {
+        id: "wands-3",
+        name: "Drie van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Vooruitzicht, expansie, resultaten van eerdere acties, wachten op schepen.",
+        reversed:
+          "Vertraging, ongeduld, te veel verwachten, angst om verder te kijken."
+      },
+      {
+        id: "wands-4",
+        name: "Vier van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Stabiliteit, vieren, mijlpalen, thuisgevoel, community, ankerpunt.",
+        reversed:
+          "Onrust, gevoel nergens echt thuis te zijn, instabiele basis."
+      },
+      {
+        id: "wands-5",
+        name: "Vijf van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Competitie, strijd, wrijving, oefenen met grenzen en positie innemen.",
+        reversed:
+          "Conflict vermijden, interne strijd, passieve agressie, chaos zonder uitlaatklep."
+      },
+      {
+        id: "wands-6",
+        name: "Zes van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Succes, erkenning, gezien worden, overwinning na inspanning.",
+        reversed:
+          "Angst voor zichtbaarheid, gebrek aan erkenning, twijfelen aan eigen prestaties."
+      },
+      {
+        id: "wands-7",
+        name: "Zeven van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Je positie verdedigen, grenzen, standvastigheid, innerlijke kracht.",
+        reversed:
+          "Zich aangevallen voelen, burn-out, opgeven, teveel moeten vechten."
+      },
+      {
+        id: "wands-8",
+        name: "Acht van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Snelheid, beweging, nieuws, flow, momentum, dingen schieten vooruit.",
+        reversed:
+          "Vertraging, miscommunicatie, verstrikking, het gevoel vast te zitten."
+      },
+      {
+        id: "wands-9",
+        name: "Negen van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Volharding, laatste stuk, moe maar niet gebroken, grenzen bewaken.",
+        reversed:
+          "Oververmoeid, wantrouwen, defensief, geen energie meer om door te gaan."
+      },
+      {
+        id: "wands-10",
+        name: "Tien van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Te veel lasten dragen, verantwoordelijkheid, bijna op het eind, overbelasting.",
+        reversed:
+          "Loslaten van lasten, taken verdelen, erkennen dat het te zwaar is."
+      },
+      {
+        id: "wands-page",
+        name: "Schildknaap van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Nieuwe ideeën, enthousiasme, speels vuur, experimenteren, nieuwsgierigheid.",
+        reversed:
+          "Rusteloos, verveeld, halfslachtige pogingen, geen richting voor je energie."
+      },
+      {
+        id: "wands-knight",
+        name: "Ridder van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Actie, avontuur, moed, impulsief gaan, passie, reizen, beweging.",
+        reversed:
+          "Onbezonnenheid, dingen niet afmaken, vluchtgedrag, ongeduld."
+      },
+      {
+        id: "wands-queen",
+        name: "Koningin van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Charisma, zelfvertrouwen, creativiteit, warm leiderschap, magnetische energie.",
+        reversed:
+          "Onzekerheid, jaloersheid, jezelf klein houden, bang voor je eigen vuur."
+      },
+      {
+        id: "wands-king",
+        name: "Koning van Staven",
+        arcana: "Minor",
+        suit: "Staven",
+        upright:
+          "Visie, ondernemerschap, moedige leider, initiatief, grote plannen.",
+        reversed:
+          "Dominant, tiranniek, ego-gedreven actie, gebrek aan empathie."
+      },
+
+      // Swords (Zwaarden)
+      {
+        id: "swords-ace",
+        name: "Aas van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Heldere waarheid, inzicht, nieuwe gedachte, beslissing, mentale doorbraak.",
+        reversed:
+          "Ruis, verwarring, miscommunicatie, niet helder durven kijken."
+      },
+      {
+        id: "swords-2",
+        name: "Twee van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Twijfel, balans zoeken, oogkleppen, niet willen kiezen, innerlijke stilstand.",
+        reversed:
+          "Beslissing nemen, waarheid erkennen, spanning doorbreken, knoop doorhakken."
+      },
+      {
+        id: "swords-3",
+        name: "Drie van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Hartzeer, pijn, breuk, teleurstelling, oude wond die voelbaar is.",
+        reversed:
+          "Heling, rouw verwerken, loslaten, vergeven, het hart langzaam openen."
+      },
+      {
+        id: "swords-4",
+        name: "Vier van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Rust, herstel, pauze, afstand nemen, mentale time-out, integratie.",
+        reversed:
+          "Geen rust nemen, mentale uitputting, onrust, burn-out gevaar."
+      },
+      {
+        id: "swords-5",
+        name: "Vijf van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Conflict, winnen ten koste van, scherpe woorden, ego-strijd, machtsspel.",
+        reversed:
+          "Spijt, sorry zeggen, conflict herstellen, wegstappen uit strijd."
+      },
+      {
+        id: "swords-6",
+        name: "Zes van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Overgang, weg uit moeilijkheid, mentale verschuiving, naar rustiger water.",
+        reversed:
+          "Niet kunnen loskomen, blijven hangen, innerlijke overgang nog niet gemaakt."
+      },
+      {
+        id: "swords-7",
+        name: "Zeven van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "List, strategie, iets achterhouden, sneakiness, slim maar mogelijk onethisch.",
+        reversed:
+          "Blootleggen van waarheid, eerlijkheid, bekentenis, zelfbedrog doorzien."
+      },
+      {
+        id: "swords-8",
+        name: "Acht van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Gevangen in gedachten, beperking, angst, jezelf klein denken.",
+        reversed:
+          "Bevrijding uit mentale kooien, perspectief verschuift, nieuwe mogelijkheden zien."
+      },
+      {
+        id: "swords-9",
+        name: "Negen van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Piekeren, slapeloze nachten, schuld, schaamte, angstscenario’s.",
+        reversed:
+          "Piekeren loslaten, opluchting, hulp zoeken, last delen, mentale verlichting."
+      },
+      {
+        id: "swords-10",
+        name: "Tien van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Einde, overgave, het ergste achter de rug, diep dal, niet verder omlaag.",
+        reversed:
+          "Zich herpakken, langzaam opstaan, herstel, het verhaal herschrijven."
+      },
+      {
+        id: "swords-page",
+        name: "Schildknaap van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Nieuw idee, nieuwsgierigheid, leren, observatie, communicatie-initiatief.",
+        reversed:
+          "Roddelen, onrust, te veel denken, geen actie, nerveuze energie."
+      },
+      {
+        id: "swords-knight",
+        name: "Ridder van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Snelle actie, scherp denken, debat, voor iets vechten, directheid.",
+        reversed:
+          "Impulsiviteit, woorden als wapen, rigide denken, te hard rijden zonder richting."
+      },
+      {
+        id: "swords-queen",
+        name: "Koningin van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Heldere analyse, grenzen, eerlijkheid, onafhankelijkheid, nuchter inzicht.",
+        reversed:
+          "Koud, cynisch, verbitterd, snijdend, emotioneel afgesneden."
+      },
+      {
+        id: "swords-king",
+        name: "Koning van Zwaarden",
+        arcana: "Minor",
+        suit: "Zwaarden",
+        upright:
+          "Mentale helderheid, strategie, objectiviteit, beslissingen op basis van logica.",
+        reversed:
+          "Misbruik van intellect, manipulatie, hard oordeel, star en rigide."
+      },
+
+      // Pentacles (Pentakels)
+      {
+        id: "pentacles-ace",
+        name: "Aas van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Nieuw begin op aards vlak: werk, financiën, lichaam, project, kans op groei.",
+        reversed:
+          "Gemiste kans, uitstel, niet investeren, gebrek aan vertrouwen in materiële groei."
+      },
+      {
+        id: "pentacles-2",
+        name: "Twee van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Balanceren, jongleren met taken, flexibiliteit, meerdere prioriteiten.",
+        reversed:
+          "Overweldigd, alles tegelijk willen, chaos, geen structuur."
+      },
+      {
+        id: "pentacles-3",
+        name: "Drie van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Samenwerking, bouwen, vakmanschap, teamwerk, iets neerzetten voor de lange termijn.",
+        reversed:
+          "Gebrek aan samenwerking, niet gezien worden, kwaliteitsproblemen, misalignment."
+      },
+      {
+        id: "pentacles-4",
+        name: "Vier van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Vasthouden, behoefte aan controle, veiligheid zoeken, sparen, grenzen om jezelf.",
+        reversed:
+          "Loslaten, vrijgevigheid, controle losser laten, risico durven nemen."
+      },
+      {
+        id: "pentacles-5",
+        name: "Vijf van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Tekort, schaarste, buitengesloten voelen, zorgen over geld of gezondheid.",
+        reversed:
+          "Herstel, hulp vinden, nieuw perspectief op overvloed, steun toelaten."
+      },
+      {
+        id: "pentacles-6",
+        name: "Zes van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Geven en ontvangen, generositeit, balans in uitwisseling, ondersteuning.",
+        reversed:
+          "Oneerlijke ruil, afhankelijkheid, verwachtingen aan geven, verborgen agenda."
+      },
+      {
+        id: "pentacles-7",
+        name: "Zeven van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Geduld, evaluatie, oogsten, kijken naar vooruitgang, lange termijn denken.",
+        reversed:
+          "Onrust, ongeduld, snel resultaat willen, twijfelen of het de moeite waard is."
+      },
+      {
+        id: "pentacles-8",
+        name: "Acht van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Vakkennis, oefenen, toewijding, skills aanscherpen, leerproces.",
+        reversed:
+          "Perfectionisme, sleur, geen plezier in werk, gebrek aan focus op kwaliteit."
+      },
+      {
+        id: "pentacles-9",
+        name: "Negen van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Onafhankelijkheid, zelfvoorzienend, genieten van wat je hebt opgebouwd, waardigheid.",
+        reversed:
+          "Afhankelijkheid, moeite met ontvangen, je succes niet kunnen voelen."
+      },
+      {
+        id: "pentacles-10",
+        name: "Tien van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Erfenis, familie, lange termijn stabiliteit, fundament, generaties, systeem.",
+        reversed:
+          "Familiepatronen, ruzies om geld, gebrek aan stabiliteit of basisveiligheid."
+      },
+      {
+        id: "pentacles-page",
+        name: "Schildknaap van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Nieuw project, leren, studie, focus op groei, een zaadje planten.",
+        reversed:
+          "Uitstel, gebrek aan focus, niet investeren in je groei, verstrooid."
+      },
+      {
+        id: "pentacles-knight",
+        name: "Ridder van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Betrouwbaarheid, routine, strategie, harde werker, gestaag bouwen.",
+        reversed:
+          "Stagnatie, koppigheid, vastzitten in routine, saai, te voorzichtig."
+      },
+      {
+        id: "pentacles-queen",
+        name: "Koningin van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Aardse zorg, lichamelijke zelfzorg, huiselijkheid, praktische overvloed, nurturing.",
+        reversed:
+          "Verzorgen ten koste van jezelf, geen tijd voor eigen lichaam of rust."
+      },
+      {
+        id: "pentacles-king",
+        name: "Koning van Pentakels",
+        arcana: "Minor",
+        suit: "Pentakels",
+        upright:
+          "Stabiliteit, ondernemerschap, financieel inzicht, verantwoordelijkheid, fundament.",
+        reversed:
+          "Materialisme, controle via geld, angst voor tekort, gierigheid of starheid."
+      }
+    ];
+
+    // --- Spread-definitie: hier kun je later extra spreads aan toevoegen ---
+    const spreads = {
+      "three-card": {
+        id: "three-card",
+        name: "3-kaarten – Verleden / Heden / Toekomst",
+        description:
+          "Een klassieke spread om een situatie te bekijken in dynamiek van verleden, heden en mogelijke ontwikkeling.",
+        positions: [
+          {
+            id: "past",
+            label: "Verleden",
+            focus:
+              "Achtergrond, oorsprong, patronen uit het verleden die nog doorwerken."
+          },
+          {
+            id: "present",
+            label: "Heden",
+            focus:
+              "De huidige energie, wat nu zichtbaar is, waar je nu invloed op hebt."
+          },
+          {
+            id: "future",
+            label: "Toekomst",
+            focus:
+              "Mogelijke ontwikkeling als je niets verandert – tendensen en richting."
+          }
+        ]
+      }
+    };
+
+    const spreadSelect = document.getElementById("spreadSelect");
+    const drawBtn = document.getElementById("drawBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const reversalToggle = document.getElementById("reversalToggle");
+    const spreadInfo = document.getElementById("spreadInfo");
+    const cardsGrid = document.getElementById("cardsGrid");
+
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function getCurrentSpread() {
+      const key = spreadSelect.value;
+      return spreads[key];
+    }
+
+    function renderSpreadInfo(spread) {
+      spreadInfo.innerHTML = `
+        <strong>${spread.name}</strong><br />
+        ${spread.description}
+      `;
+    }
+
+    function generateInterpretation(card, orientation, position) {
+      const oriText = orientation === "upright" ? "Rechtop" : "Omgekeerd";
+      const cardMeaning =
+        orientation === "upright" ? card.upright : card.reversed;
+
+      return (
+        `${position.label} – ${position.focus}\n\n` +
+        `${oriText}: ${cardMeaning}`
+      );
+    }
+
+    function renderCards(spread, drawn = []) {
+      cardsGrid.innerHTML = "";
+      spread.positions.forEach((pos, index) => {
+        const slot = document.createElement("div");
+        slot.className = "card-slot";
+
+        const header = document.createElement("div");
+        header.className = "slot-header";
+        header.innerHTML = `
+          <div>
+            <div class="slot-title">${pos.label}</div>
+            <div class="slot-subtitle">${pos.focus}</div>
+          </div>
+          <div class="slot-subtitle">Positie ${index + 1}</div>
+        `;
+        slot.appendChild(header);
+
+        const cardObj = drawn[index];
+
+        if (!cardObj) {
+          const placeholder = document.createElement("div");
+          placeholder.className = "card-meaning placeholder";
+          placeholder.textContent =
+            "Nog geen kaart getrokken voor deze positie.";
+          slot.appendChild(placeholder);
+        } else {
+          const meta = document.createElement("div");
+          meta.className = "card-meta";
+
+          const arcanaBadge = document.createElement("span");
+          arcanaBadge.className =
+            "badge " + (cardObj.card.arcana === "Major" ? "major" : "");
+          arcanaBadge.textContent =
+            cardObj.card.arcana === "Major"
+              ? "Grote Arcana"
+              : `Kleine Arcana – ${cardObj.card.suit}`;
+          meta.appendChild(arcanaBadge);
+
+          const orientationBadge = document.createElement("span");
+          orientationBadge.className = "badge orientation";
+          orientationBadge.textContent =
+            cardObj.orientation === "upright" ? "Rechtop" : "Omgekeerd";
+          meta.appendChild(orientationBadge);
+
+          slot.appendChild(meta);
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "card-name";
+          nameEl.textContent = cardObj.card.name;
+          slot.appendChild(nameEl);
+
+          const meaningEl = document.createElement("div");
+          meaningEl.className = "card-meaning";
+          meaningEl.textContent = generateInterpretation(
+            cardObj.card,
+            cardObj.orientation,
+            pos
+          );
+          slot.appendChild(meaningEl);
+        }
+
+        cardsGrid.appendChild(slot);
+      });
+    }
+
+    function drawSpread() {
+      const spread = getCurrentSpread();
+      const withReversals = reversalToggle.checked;
+      const shuffledDeck = shuffle(tarotDeck);
+      const drawn = [];
+
+      for (let i = 0; i < spread.positions.length; i++) {
+        const card = shuffledDeck[i];
+        let orientation = "upright";
+        if (withReversals) {
+          orientation = Math.random() < 0.5 ? "upright" : "reversed";
+        }
+        drawn.push({ card, orientation });
+      }
+
+      renderCards(spread, drawn);
+    }
+
+    function resetSpread() {
+      const spread = getCurrentSpread();
+      renderCards(spread, []);
+    }
+
+    // Init
+    const initialSpread = getCurrentSpread();
+    renderSpreadInfo(initialSpread);
+    renderCards(initialSpread, []);
+
+    spreadSelect.addEventListener("change", () => {
+      const s = getCurrentSpread();
+      renderSpreadInfo(s);
+      renderCards(s, []);
+    });
+
+    drawBtn.addEventListener("click", drawSpread);
+    resetBtn.addEventListener("click", resetSpread);
+  </script>
+</body>
+</html>
